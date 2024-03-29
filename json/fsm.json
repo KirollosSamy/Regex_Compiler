@@ -1,0 +1,26 @@
+{
+  "startingState": "S0",
+  "states": {
+    "S0": {
+      "isTerminatingState": true,
+      "transitions": {
+        "0": "S0",
+        "1": "S1"
+      }
+    },
+    "S1": {
+      "isTerminatingState": false,
+      "transitions": {
+        "0": "S2",
+        "1": "S0"
+      }
+    },
+    "S2": {
+      "isTerminatingState": false,
+      "transitions": {
+        "0": "S1",
+        "1": "S2"
+      }
+    }
+  }
+}
