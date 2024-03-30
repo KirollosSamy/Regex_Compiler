@@ -77,7 +77,7 @@ class FSM():
         for state in self._states:
             graph.node(state)
         for source, transitions in self._states.items():
-            for destination, action in transitions.items():
+            for action, destination in transitions.items():
                 graph.edge(source, destination, action)
         graph.render(filename, format='png', cleanup=True)
         

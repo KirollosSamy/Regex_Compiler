@@ -1,5 +1,11 @@
 # Regex_Compiler
 
-### Notes:    
+### Download the visulaization tool "Graphviz"
+1-Install graphviz package:
+- Windows
+`winget install graphviz`
+- Ubuntu
+`sudo apt install graphviz`
 
-Cache the epsilon closure in a memo for further use
+2- Install the python library:
+ `pip install graphviz`
