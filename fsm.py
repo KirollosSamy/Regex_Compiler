@@ -63,11 +63,13 @@ class FSM():
     # Serialize FSM object into json file   
     def to_json(self, filename: str):
         data = {}
-        data[startingState] = self._initial_state
+        data["startingState"] = self._initial_state
+        states = data["states"] = {}
         
         for state, transitions in self._states.items():
-            data[state] = transitions.copy()
-            data[state]["isTerminatingState"] = self.is_acceptance(state)
+            states[state] = {}
+            states[state]["isTerminatingState"] = self.is_acceptance(state)
+            states[state]["transitions"] = transitions
         
         with open(filename, "w") as file:
             json.dump(data, file)
