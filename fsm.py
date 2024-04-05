@@ -82,7 +82,7 @@ class FSM():
             for action, destination in transitions.items():
                 graph.edge(source, destination, action)
         graph.render(filename, format='png', cleanup=True)
-        
+         
 
 # @dataclass(frozen=True)
 # class State:
