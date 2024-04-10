@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from typing import Dict, TypeAlias, Set
+from typing import Dict, Set,List
 import json
 from graphviz import Digraph
 from utils import list_to_string,set_to_string
 
-Action: TypeAlias = str
+Action = str
     
 class State:
     name: str
