@@ -110,25 +110,6 @@ class RegexParser:
     def minmize_DFA(self, DFA: FSM) -> FSM:
         pass
     
-    def _inject_concat(self, regex: str) -> str:
-        SPECIAL_SYMBOLS = ('*', '+', '?', ')', ']')
-        CONCAT_OPERATOR = '&'
-        
-        processed_regex = ""
-        for i in range(len(regex)-1):
-            char, next_char = regex[i], regex[i+1]
-            processed_regex += char
-            if (char in SPECIAL_SYMBOLS and next_char not in SPECIAL_SYMBOLS) \
-                    or (char.isalnum() and (
-                            next_char.isalnum() or
-                            next_char == '(' or
-                            next_char == '['
-                    )):
-                processed_regex += CONCAT_OPERATOR
-        
-        processed_regex += regex[-1]       
-        return processed_regex
-    
     def list_to_string(self,lst: List[State]) -> str:
         names = [state.name for state in lst]   
         return ' '.join(names)
