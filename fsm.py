@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Dict, Set,List
 import json
 from graphviz import Digraph
-from utils import list_to_string,set_to_string
 
 Action = str
     
@@ -117,7 +116,11 @@ class FSM():
             if state in self.acceptance_states:
                 graph.node(state.name, shape='doublecircle')
             else:
-                graph.node(state.name, shape='circle')
+                if state == self.initial_state:
+                    graph.node(state.name, shape='circle', color='blue', style='filled', fillcolor='lightblue')
+                else:
+                    graph.node(state.name, shape='circle')
+
         # Add graph edges
         for source, transitions in self._states.items():
             for action, destinations in transitions.items():

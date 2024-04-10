@@ -1,15 +1,12 @@
-from fsm import *
+from fsm import FSM
 from regex import Regex
 from regex_parser import RegexParser
 
 def main():
-    # fsm = FSM.from_json("json/fsm.json")
-    # fsm.visualize("output/fsm", label='test')
-    # fsm.to_json("json/out.json")
     
     regex_parser = RegexParser()
-    regex = Regex("a(a|b)*b", regex_parser)
-    NFA = regex_parser.regex_to_NFA("a&(a|b)*&b")
+    regex = regex_parser.preprocess("(a|b)*")
+    NFA = regex_parser.regex_to_NFA(regex)
     NFA.visualize('output/simple_regex')
     NFA.to_json('json/NFA.json')
 
@@ -18,6 +15,10 @@ def main():
         temp = regex_parser.epsilon_closure(NFA, state)
         closure = [state.name for state in temp]
         print(f"for state {state.name} : " + ' '.join(closure))
+
+    # test NFA to DFA
+    DFA = regex_parser.NFA_to_DFA(NFA)
+    DFA.visualize('output/simple_regex_DFA')
 
 if __name__ == "__main__":
     main()
