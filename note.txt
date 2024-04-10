@@ -53,23 +53,23 @@ class RegexParser:
         '''
         DFA = FSM()
         start_state = State('start', self.epsilon_closure(NFA, NFA.initial_state))
-        # convert set of states to Frozenset to make it hashable
+        for state in start_state.elements:
+            print(f'start state: {state.name}')
+
+        # convert set of states to Frozenset
         start_state.elements = frozenset(start_state.elements)
         DFA.add_state(start_state)
         DFA.initial_state = start_state
 
         unmarked_states = [start_state]
         marked_states = set()
-        # iterate over unmarked states
+
         while unmarked_states:
             current_state = unmarked_states.pop()
             marked_states.add(current_state)
 
-            # iterate over each action in each state
             for state in current_state.elements:
                 for action in NFA.get_transitions(state).keys():
-                    if action == 'ε':
-                        continue
                     next_states = set()
                     for next_state in NFA.get_transitions(state)[action]:
                         next_states |= self.epsilon_closure(NFA, next_state)
@@ -81,14 +81,22 @@ class RegexParser:
                         unmarked_states.append(new_state)
 
                     DFA.add_transition(current_state, new_state, action)
-        # check for acceptance states    
+
+                    
+
         for state in DFA._states.keys():
             for nfa_state in state.elements:
                 if NFA.is_acceptance(nfa_state):
                     DFA._acceptance_states.add(state)
                     break
 
+        
+
         return DFA
+
+
+
+        
 
 
     def epsilon_closure(self, nfa: FSM,s: State) -> Set[State]:
