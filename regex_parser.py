@@ -2,19 +2,17 @@ from collections import defaultdict
 from fsm import FSM, State, Action
 from shunting_yard import ShuntingYard
 from thompson import Thompson
+from exceptions import ParserSyntaxError
+from preprocessor import RegexPreprocessor
 from typing import List, Set, Dict, Tuple
 
 class RegexParser:
     def parse(self, regex: str) -> FSM:
-        regex = self.preprocess(regex)
+        regex = RegexPreprocessor.preprocess(regex)
         NFA = self.regex_to_NFA(regex)
         DFA = self.NFA_to_DFA(NFA)
         DFA_min = self.minmize_DFA(DFA)
         return DFA_min
-        
-    def preprocess(self, regex: str) -> str:
-        processed_regex = self._inject_concat(regex)
-        return processed_regex
     
     def regex_to_NFA(self, regex: str) -> FSM:
         operators = {'*':0, '+':0, '?':0, '&': 1, '|': 2}
@@ -312,25 +310,6 @@ class RegexParser:
 
 
     
-    
-    def _inject_concat(self, regex: str) -> str:
-        SPECIAL_SYMBOLS = ('*', '+', '?', ')', ']')
-        CONCAT_OPERATOR = '&'
-        
-        processed_regex = ""
-        for i in range(len(regex)-1):
-            char, next_char = regex[i], regex[i+1]
-            processed_regex += char
-            if (char in SPECIAL_SYMBOLS and next_char not in SPECIAL_SYMBOLS) \
-                    or (char.isalnum() and (
-                            next_char.isalnum() or
-                            next_char == '(' or
-                            next_char == '['
-                    )):
-                processed_regex += CONCAT_OPERATOR
-        
-        processed_regex += regex[-1]       
-        return processed_regex
     
     def list_to_string(self,lst: List[State]) -> str:
         names = [state.name for state in lst]   
