@@ -1,4 +1,5 @@
 import string
+from exceptions import ParserSyntaxError
 
 class RegexPreprocessor:
     @staticmethod
@@ -16,11 +17,14 @@ class RegexPreprocessor:
         for i in range(len(regex)-1):
             char, next_char = regex[i], regex[i+1]
             processed_regex += char
-            if (char in SPECIAL_SYMBOLS and next_char not in SPECIAL_SYMBOLS) \
-                    or (char.isalnum() and (
-                            next_char.isalnum() or
-                            next_char == '('
-                    )):
+            
+            if (char in SPECIAL_SYMBOLS and 
+                next_char not in SPECIAL_SYMBOLS and 
+                next_char != '|') \
+                or (char.isalnum() and (
+                    next_char.isalnum() or
+                    next_char == '('
+                )):
                 processed_regex += CONCAT_OPERATOR
         
         processed_regex += regex[-1]       
