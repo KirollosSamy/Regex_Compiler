@@ -1,15 +1,16 @@
 
 
 
-from typing import List, Set
-from fsm import FSM, State
+from typing import List, Set, Dict, Tuple
+from fsm import FSM, State, Action
+from utils import set_to_string, list_to_string
 
 
-class PowersetConstruction:
+class PowerSetConstruction:
 
-    def NFA_to_DFA(self, NFA: FSM) -> FSM:
+    def execute(self, NFA: FSM) -> FSM:
         '''
-            algorithm for converting NFA to DFA (powerset construction):
+            algorithm for converting NFA to DFA (power set construction):
 
                 1. create a new start state and add it to the DFA states
                     a. each state is a set of NFA states
@@ -60,7 +61,7 @@ class PowersetConstruction:
                     new_state = None
                     if next_states not in frozenset([s_.elements for s_ in DFA._states.keys()]):
                         # If not, create a new state with the next states
-                        new_state = State(self.set_to_string(next_states), next_states)
+                        new_state = State(set_to_string(next_states), next_states)
                         DFA.add_state(new_state)
                         unmarked_states.append(new_state)
                     else:
@@ -82,6 +83,7 @@ class PowersetConstruction:
         # rename states
         for state in DFA._states.keys():
             state.name = "S" + str(list(DFA._states.keys()).index(state))
+            print(state.name)
         
         return DFA
 
@@ -98,14 +100,5 @@ class PowersetConstruction:
                             if next_state not in eps:
                                 new_states = True
                             eps.add(next_state)
-
-    def list_to_string(self,lst: List[State]) -> str:
-        names = [state.name for state in lst]   
-        return ' '.join(names)
-
-    def set_to_string(self,s: 'set[State]') -> str:
-        names = [state.name for state in s]    
-        return ' '.join(names)
-
-
         return eps
+
