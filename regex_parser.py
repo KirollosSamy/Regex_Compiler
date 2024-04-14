@@ -116,54 +116,52 @@ class RegexParser:
 
 
         return eps
-
-
+    
     def minimize_DFA(self, DFA: FSM) -> FSM:
-        '''
-        algorithm for minimizing DFA:
-
-            1. create two sets of states P and Q
-                a. P contains all acceptance states
-                b. Q contains all non-acceptance states
-
-            2. create initially two sets to be split
-                a. P and Q
-
-            3. while there are states in any of the sets:
-                a. check if a state has transitions to different sets
-                    i. if yes, split the set
-                b. repeat step 3 until no more states are split
-
-                c. keep track of split sets and merge the ones that have the same transitions
-
-            4. return the minimized DFA
-        '''
 
         P, Q = self._create_initial_sets(DFA)
         print(f'P: {self.set_to_string(P)}')
         print(f'Q: {self.set_to_string(Q)}')
 
         sets = [P, Q]
-        new_sets = True
-        while new_sets:
-            new_sets = False
-            for s in sets.copy():
-                if len(s) > 1:
-                    new_sets = self._split_set(DFA, s, sets)
-                    if new_sets:
-                        break # break the loop if a set is splitted to start over 
+
+        new_states = True
+
+        while new_states:
+            new_states = False
+
+            for set in sets:
+                if len(set) > 1:
+                    split_states = {}
+                    for state in set:
+                        transition_table = {}
+
+                        for action, transitions in DFA.get_transitions(state).items():
+                            transition_table[action] = frozenset(transitions)
+
+                        transition_key = frozenset(transition_table.items())  
+                        if transition_key not in split_states:
+                            split_states[transition_key] = {state}
+                        else:
+                            split_states[transition_key].add(state)
+
+                    if len(split_states) > 1:
+                        sets.remove(set)
+                        for split_state in split_states.values():
+                            sets.append(split_state)
+                            new_states = True
+                        break
 
         for s in sets:
             print(f'splited set: {self.set_to_string(s)}')
 
-        # merged_sets = self._merge_sets(DFA, sets)
-
-        # for s in merged_sets:
-        #     print(f'merged set: {self.set_to_string(s)}')
+        # remove empty sets
+        sets = [s for s in sets if s]
 
         minimized_DFA = self._create_minimized_DFA(DFA, sets)
 
         return minimized_DFA
+
     
 
     # create initial sets [acceptance] and [not acceptance] states
@@ -177,97 +175,6 @@ class RegexParser:
                 Q.add(state)
         return P, Q
 
-    # split sets that have transitions to different sets
-    def _split_set(self, DFA: FSM, s: Set[State], sets: List[Set[State]]) -> bool:
-        new_sets = False
-        set_next_states = set()  # The next states of the current set
-
-        for state in s:
-            transitions = DFA.get_transitions(state)
-            for action, next_states in transitions.items():
-                set_next_states |= set(next_states)  # Union of all next states in this set
-
-        # Compare the next states of the current set with other sets
-        for other in sets:
-            # Skip the current set and any empty sets
-            if other == s:
-                continue
-
-            # Check if all next states of the current set exist in the other set
-            if all(next_state in other for next_state in set_next_states):
-                # No need to split the sets
-                continue
-
-            # Check if no next states of the current set exist in the other set
-            elif not set_next_states & other:
-                # No need to split the sets
-                continue
-
-            else: # some next states of the current set exist in the other set
-                # If not, split the set and update new_sets flag
-
-                # Remove the current set from the sets list
-                print(f's: {self.set_to_string(s)}')
-                print(f'other: {self.set_to_string(other)}')
-                print(f'next states: {self.set_to_string(set_next_states)}')
-                sets.remove(s)
-                # Split the set s into two sets and add them to the sets list if they are not empty
-                common_states = set_next_states & other
-                # get s elements having transition to common_states
-                s_split = set()
-                new_split = set()
-                for state in s:
-                    for action, next_states in DFA.get_transitions(state).items():
-                        if set(next_states) & common_states:
-                            s_split.add(state)
-                            break
-                        else:
-                            new_split.add(state)
-                if s_split:
-                    new_sets = True
-                    print(f'split states: {self.set_to_string(s_split)}')
-                    sets.append(s_split)
-
-                if new_split:
-                    print(f'new split states: {self.set_to_string(new_split)}')
-                    sets.append(new_split)
-
-
-                break  # Break the loop if a set is split
-
-        return new_sets
-
-
-
-
-    # merge sets that have the same transitions
-    def _merge_sets(self, DFA: FSM, sets: List[Set[State]]) -> List[Set[State]]:
-        merged_sets = []
-        merged = False
-        for set_ in sets:
-            for state in set_:
-                transitions = DFA.get_transitions(state)
-                for action, next_states in transitions.items():
-                    for other in sets:
-                        for next_state in next_states:
-                            if next_state in other and set_ != other:
-                                merged = merged & True
-                        if merged:
-                            merged_set = set_ | other
-                            merged_sets.append(merged_set)
-                            break
-                    if merged:
-                        break
-                if merged:
-                    break
-
-            if not merged:
-                merged_sets.append(set_)
-
-            merged = False
-
-        return merged_sets
-
     # create and save the minimized DFA
     def _create_minimized_DFA(self, DFA: FSM, merged_sets: List[Set[State]]) -> FSM:
         minimized_DFA = FSM()
@@ -275,7 +182,8 @@ class RegexParser:
         # Create a mapping from original states to new states in the minimized DFA
         state_mapping = {}
         for idx, states_set in enumerate(merged_sets):
-            new_state = State("S_new" + str(idx),frozenset(states_set))
+            #assume choosing the first state as representative of the set
+            new_state = State("S" + str(idx),frozenset(states_set))
             minimized_DFA.add_state(new_state)
             for state in states_set:
                 state_mapping[state.name] = new_state
@@ -283,6 +191,7 @@ class RegexParser:
             # Set the initial state of the minimized DFA
             if DFA.initial_state in states_set:
                 minimized_DFA.initial_state = new_state
+
 
             # If any state in the set is an acceptance state, the set is an acceptance state
             if any(DFA.is_acceptance(state) for state in states_set):
@@ -299,8 +208,13 @@ class RegexParser:
                 new_from_state = state_mapping[from_state.name]
                 
                 # Add transition to the minimized DFA
-                for state in to_state:
+                for state in set(to_state):
                     new_to_state = state_mapping[state.name]
+
+                    # if transition with the same action already exists, skip
+                    if action in minimized_DFA.get_transitions(new_from_state).keys():
+                        if new_to_state in minimized_DFA.get_transitions(new_from_state)[action]:
+                            continue
                     minimized_DFA.add_transition(new_from_state, new_to_state, action)
 
         return minimized_DFA
