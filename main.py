@@ -4,8 +4,9 @@ from regex_parser import RegexParser
 from preprocessor import RegexPreprocessor
 
 def main():
+    regex_parser = RegexParser()
+    
     while True:
-        regex_parser = RegexParser()
         regex = input("Enter regex: ")
         regex_parser.parse(regex)
 
