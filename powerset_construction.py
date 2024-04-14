@@ -1,28 +1,12 @@
-from fsm import FSM, State, Action
-from shunting_yard import ShuntingYard
-from thompson import Thompson
-from typing import List, Set, Dict
 
-class RegexParser:
-    def parse(self, regex: str) -> FSM:
-        regex = self.preprocess(regex)
-        NFA = self.regex_to_NFA(regex)
-        DFA = self.NFA_to_DFA(NFA)
-        DFA_min = self.minmize_DFA(DFA)
-        return DFA_min
-        
-    def preprocess(self, regex: str) -> str:
-        processed_regex = self._inject_concat(regex)
-        return processed_regex
-    
-    def regex_to_NFA(self, regex: str) -> FSM:
-        operators = {'*':0, '+':0, '?':0, '&': 1, '|': 2}
-        shunting_yard = ShuntingYard(operators)
-        postfix = shunting_yard.parse(regex)
-        thompson = Thompson()
-        NFA = thompson.construct_NFA(postfix)
-        return NFA
-    
+
+
+from typing import List, Set
+from fsm import FSM, State
+
+
+class PowersetConstruction:
+
     def NFA_to_DFA(self, NFA: FSM) -> FSM:
         '''
             algorithm for converting NFA to DFA (powerset construction):
@@ -38,8 +22,7 @@ class RegexParser:
                     a. mark the state as visited.
 
                     b. for each possible action in the alphabet:
-                        i. find the epsilon closure of the union of the next states of the current state
-                           in the NFA for the action
+                        i. find the epsilon closure of the union of the next states of the current state in the NFA for the action
                         ii. if the closure is not in the DFA states, add it
                         iii. add a transition from the current state to the closure
                     
@@ -53,57 +36,59 @@ class RegexParser:
         '''
         DFA = FSM()
         start_state = State('start', self.epsilon_closure(NFA, NFA.initial_state))
-        for state in start_state.elements:
-            print(f'start state: {state.name}')
-
-        # convert set of states to Frozenset
+        # convert set of states to Frozenset to make it hashable
         start_state.elements = frozenset(start_state.elements)
         DFA.add_state(start_state)
         DFA.initial_state = start_state
 
         unmarked_states = [start_state]
-        marked_states = set()
-
+        # iterate over unmarked states
         while unmarked_states:
             current_state = unmarked_states.pop()
-            marked_states.add(current_state)
 
+            # iterate over each action in each state
             for state in current_state.elements:
                 for action in NFA.get_transitions(state).keys():
+                    if action == 'ε':
+                        continue
                     next_states = set()
                     for next_state in NFA.get_transitions(state)[action]:
                         next_states |= self.epsilon_closure(NFA, next_state)
                     next_states = frozenset(next_states)
 
-                    if next_states not in [state.elements for state in DFA._states.keys()]:
+                    # Check if the next states are not already in the DFA states
+                    new_state = None
+                    if next_states not in frozenset([s_.elements for s_ in DFA._states.keys()]):
+                        # If not, create a new state with the next states
                         new_state = State(self.set_to_string(next_states), next_states)
                         DFA.add_state(new_state)
                         unmarked_states.append(new_state)
+                    else:
+                        # If the next states are already in the DFA states, find the existing state to reuse it
+                        for state_ in DFA._states.keys():
+                            if state_.elements == next_states:
+                                new_state = state_
+                                break
 
                     DFA.add_transition(current_state, new_state, action)
 
-                    
-
+        # check for acceptance states    
         for state in DFA._states.keys():
             for nfa_state in state.elements:
                 if NFA.is_acceptance(nfa_state):
                     DFA._acceptance_states.add(state)
                     break
 
+        # rename states
+        for state in DFA._states.keys():
+            state.name = "S" + str(list(DFA._states.keys()).index(state))
         
-
         return DFA
 
 
-
-        
-
-
     def epsilon_closure(self, nfa: FSM,s: State) -> Set[State]:
-        # print(f'epsilon closure of state {s.name}')
         eps = {s}
         new_states = True
-
         while new_states:
             new_states = False
             for state in eps.copy():
@@ -114,31 +99,6 @@ class RegexParser:
                                 new_states = True
                             eps.add(next_state)
 
-
-        return eps
-
-    def minmize_DFA(self, DFA: FSM) -> FSM:
-        pass
-    
-    def _inject_concat(self, regex: str) -> str:
-        SPECIAL_SYMBOLS = ('*', '+', '?', ')', ']')
-        CONCAT_OPERATOR = '&'
-        
-        processed_regex = ""
-        for i in range(len(regex)-1):
-            char, next_char = regex[i], regex[i+1]
-            processed_regex += char
-            if (char in SPECIAL_SYMBOLS and next_char not in SPECIAL_SYMBOLS) \
-                    or (char.isalnum() and (
-                            next_char.isalnum() or
-                            next_char == '(' or
-                            next_char == '['
-                    )):
-                processed_regex += CONCAT_OPERATOR
-        
-        processed_regex += regex[-1]       
-        return processed_regex
-    
     def list_to_string(self,lst: List[State]) -> str:
         names = [state.name for state in lst]   
         return ' '.join(names)
@@ -146,3 +106,6 @@ class RegexParser:
     def set_to_string(self,s: 'set[State]') -> str:
         names = [state.name for state in s]    
         return ' '.join(names)
+
+
+        return eps
