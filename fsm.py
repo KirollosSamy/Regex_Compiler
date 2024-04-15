@@ -111,19 +111,21 @@ class FSM():
         label = label if label is not None else filename
         graph = Digraph(comment=label)
         graph.attr(rankdir='LR')
+        
         # Add graph nodes
         for state in self._states:
             if state in self.acceptance_states:
                 graph.node(state.name, shape='doublecircle')
             else:
-                if state == self.initial_state:
-                    graph.node(state.name, shape='circle', color='blue', style='filled', fillcolor='lightblue')
-                else:
-                    graph.node(state.name, shape='circle')
+                graph.node(state.name, shape='circle')
 
         # Add graph edges
         for source, transitions in self._states.items():
             for action, destinations in transitions.items():
                 for destination in destinations:
                     graph.edge(source.name, destination.name, action)
+                    
+        # initial state
+        graph.node(self.initial_state.name, color='blue', style='filled', fillcolor='lightblue')
+        
         graph.render(filename, format='png', cleanup=True)

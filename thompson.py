@@ -5,7 +5,7 @@ from exceptions import ParserSyntaxError
 EPSILON_MOVE = 'ε'
 
 class Thompson:
-    BINARY_OPERATORS = ('&', '|')
+    BINARY_OPERATORS = ('&', '|', '-')
     UNARY_OPERATORS = ('*', '+', '?')
     
     _state_index = 0
@@ -26,6 +26,8 @@ class Thompson:
                     NFA = self.concat(A, B)
                 elif symbol == '|':
                     NFA = self.union(A, B)
+                elif symbol == '-':
+                    NFA = self.range(A, B)
             elif self.is_unary_operator(symbol):
                 if len(stack) < 1:
                     raise ParserSyntaxError("Invalid Regex")
@@ -115,6 +117,20 @@ class Thompson:
         NFA.add_transition(NFA.initial_state, NFA.acceptance_state, EPSILON_MOVE)
         NFA.add_transition(NFA.initial_state, A.initial_state, EPSILON_MOVE)
         return NFA
+    
+    def range(self, A: FSM, B: FSM):
+        start = next(iter(A.get_transitions(A.initial_state)))
+        end = next(iter(B.get_transitions(B.initial_state)))
+        
+        NFA = FSM()
+        source, destination = self.make_state(), self.make_state()
+        NFA.add_state(source)
+        NFA.add_state(destination)
+        NFA.initial_state = source
+        NFA.set_acceptance(destination)
+        NFA.add_transition(source, destination, f'{start}-{end}')
+        return NFA
+        
             
     def make_state(self) -> State:
         state = State(f'S{self._state_index}')

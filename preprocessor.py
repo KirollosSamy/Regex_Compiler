@@ -52,9 +52,13 @@ class RegexPreprocessor:
                                 or (regex[i].isdigit() and regex[i+2].isdigit()):
                             start, end = ord(regex[i]), ord(regex[i+2])
                             if start >= end: raise ParserSyntaxError("Invalid range")
-                            expanded_range = [chr(c) for c in range(start, end)]
-                            preprocessed_regex += '|'.join(expanded_range) + '|'
-                            i += 1
+                            # expanded_range = [chr(c) for c in range(start, end)]
+                            # preprocessed_regex += '|'.join(expanded_range) + '|'
+                            # i += 1
+                            preprocessed_regex += f'{regex[i]}-{regex[i+2]}'
+                            if i+3 < n and regex[i+3].isalnum():
+                                preprocessed_regex += '|'
+                            i += 2
                         else: raise ParserSyntaxError("Invalid range")
                     elif regex[i].isalnum() and regex[i+1].isalnum():
                         preprocessed_regex += regex[i] + '|'

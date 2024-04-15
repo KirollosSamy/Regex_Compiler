@@ -24,7 +24,7 @@ class RegexParser:
         return DFA_min
     
     def regex_to_NFA(self, regex: str) -> FSM:
-        operators = {'*':0, '+':0, '?':0, '&': 1, '|': 2}
+        operators = {'*':0, '+':0, '?':0, '&': 1, '-': 1, '|': 2}
         shunting_yard = ShuntingYard(operators)
         postfix = shunting_yard.parse(regex)
         thompson = Thompson()
