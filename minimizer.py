@@ -59,6 +59,8 @@ class Minimizer:
 
         minimized_DFA = self._create_minimized_DFA(DFA, sets)
 
+        minimized_DFA.initial_state.name = "Start"
+
         return minimized_DFA
 
     # create initial sets [acceptance] and [not acceptance] states
