@@ -73,8 +73,9 @@ class RegexPreprocessor:
                 if regex[i] == ']': 
                     raise ParserSyntaxError("Unmatched sqaure parentheses")
                 elif regex[i] == '.':
-                    alphanum_chars = string.ascii_letters + string.digits
-                    preprocessed_regex += '(' + '|'.join(alphanum_chars) + ')'
+                    # alphanum_chars = string.ascii_letters + string.digits
+                    # preprocessed_regex += '(' + '|'.join(alphanum_chars) + ')'
+                    preprocessed_regex += '(a-z|A-Z|0-9)'
                 else:
                     preprocessed_regex += regex[i]
             i += 1
