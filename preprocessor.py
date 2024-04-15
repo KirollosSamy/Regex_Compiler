@@ -4,12 +4,15 @@ from exceptions import ParserSyntaxError
 class RegexPreprocessor:
     @staticmethod
     def preprocess(regex: str) -> str:
+        RegexPreprocessor.validate_alphapet(regex)
         processed_regex = RegexPreprocessor._handle_ranges(regex)
         processed_regex = RegexPreprocessor._inject_concat(processed_regex)
         return processed_regex
     
     @staticmethod    
     def _inject_concat(regex: str) -> str:
+        if not regex: return ""
+        
         SPECIAL_SYMBOLS = ('*', '+', '?', ')')
         CONCAT_OPERATOR = '&'
         
@@ -73,3 +76,9 @@ class RegexPreprocessor:
             i += 1
         return preprocessed_regex
     
+    @staticmethod
+    def validate_alphapet(regex: str):
+        allowed_symbols = {'*', '+', '?', '(', ')', '[', ']', '.', '|', '-'}
+        for symbol in regex:
+            if not (symbol.isalnum() or symbol in allowed_symbols):
+                raise ParserSyntaxError(f"Invalid symbol {symbol}")

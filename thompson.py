@@ -1,5 +1,6 @@
 from collections import deque
 from fsm import FSM, State
+from exceptions import ParserSyntaxError
 
 EPSILON_MOVE = 'ε'
 
@@ -17,6 +18,8 @@ class Thompson:
             if symbol.isalnum():
                 NFA = self.base(symbol)
             elif self.is_binary_operator(symbol):
+                if len(stack) < 2:
+                    raise ParserSyntaxError("Invalid Regex")
                 B = stack.pop()
                 A = stack.pop()
                 if symbol == '&':
@@ -24,6 +27,8 @@ class Thompson:
                 elif symbol == '|':
                     NFA = self.union(A, B)
             elif self.is_unary_operator(symbol):
+                if len(stack) < 1:
+                    raise ParserSyntaxError("Invalid Regex")
                 A = stack.pop()
                 if symbol == '*':
                     NFA = self.kleene_star(A)

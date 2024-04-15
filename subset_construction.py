@@ -6,7 +6,7 @@ from fsm import FSM, State, Action
 from utils import set_to_string, list_to_string
 
 
-class PowerSetConstruction:
+class SubsetConstruction:
 
     def execute(self, NFA: FSM) -> FSM:
         '''
@@ -83,7 +83,6 @@ class PowerSetConstruction:
         # rename states
         for state in DFA._states.keys():
             state.name = "S" + str(list(DFA._states.keys()).index(state))
-            print(state.name)
         
         return DFA
 

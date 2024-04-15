@@ -46,5 +46,9 @@ class ShuntingYard:
                 raise ParserSyntaxError("Unmatched Parenthesis")
             output_queue.append(operator)
             
-        postfix = ''.join(output_queue) 
+        postfix = ''.join(output_queue)
+        
+        if not postfix:
+            raise ParserSyntaxError("Empty regex")
+        
         return postfix
