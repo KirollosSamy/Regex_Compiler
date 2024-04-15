@@ -46,32 +46,42 @@ class SubsetConstruction:
         # iterate over unmarked states
         while unmarked_states:
             current_state = unmarked_states.pop()
-
+            transition_table = {} # action -> next_states
             # iterate over each action in each state
             for state in current_state.elements:
                 for action in NFA.get_transitions(state).keys():
                     if action == 'ε':
                         continue
+
                     next_states = set()
                     for next_state in NFA.get_transitions(state)[action]:
                         next_states |= self.epsilon_closure(NFA, next_state)
                     next_states = frozenset(next_states)
 
-                    # Check if the next states are not already in the DFA states
-                    new_state = None
-                    if next_states not in frozenset([s_.elements for s_ in DFA._states.keys()]):
-                        # If not, create a new state with the next states
-                        new_state = State(set_to_string(next_states), next_states)
-                        DFA.add_state(new_state)
-                        unmarked_states.append(new_state)
+                    if action not in transition_table:
+                        transition_table[action] = next_states
                     else:
-                        # If the next states are already in the DFA states, find the existing state to reuse it
-                        for state_ in DFA._states.keys():
-                            if state_.elements == next_states:
-                                new_state = state_
-                                break
+                        transition_table[action] |= next_states
 
-                    DFA.add_transition(current_state, new_state, action)
+            # for each action in transition table make a new state if not already in DFA
+            for action, next_states in transition_table.items():
+                if not next_states:
+                    continue
+
+                next_state = State('S' + str(len(DFA._states)), next_states)
+                if next_state not in DFA._states:
+                    unmarked_states.append(next_state)
+                    DFA.add_state(next_state)
+                else:
+                    # if exist find the state
+                    for state in DFA._states.keys():
+                        if state == next_state:
+                            next_state = state
+                            break
+
+                DFA.add_transition(current_state, next_state, action)
+
+
 
         # check for acceptance states    
         for state in DFA._states.keys():
@@ -84,6 +94,9 @@ class SubsetConstruction:
         for state in DFA._states.keys():
             state.name = "S" + str(list(DFA._states.keys()).index(state))
         
+
+        DFA.initial_state.name = "Start"
+
         return DFA
 
 
